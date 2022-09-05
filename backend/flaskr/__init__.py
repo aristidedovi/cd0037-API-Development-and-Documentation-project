@@ -1,3 +1,4 @@
+#from backend.flaskr.api.v1 import api1
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -6,26 +7,52 @@ import random
 
 from models import setup_db, Question, Category
 
-QUESTIONS_PER_PAGE = 10
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
 
+    with app.app_context():
+
+        # import blueprints
+        from .api.v1 import api1
+        # register blueprints
+        app.register_blueprint(api1, url_prefix='/api/v1')
+        
+        
+        # force 404 and 405 errors to return a json object if requested from the api blueprint
+        @app.errorhandler(404)
+        def _handle_404(error):
+            if request.path.startswith('/api/v1/'):
+                return jsonify({
+                    'success': False,
+                    'error': 404,
+                    'message': 'resource not found'
+                }), 404
+            else:
+                return error
+
+        @app.errorhandler(405)
+        def _handle_405(error):
+            if request.path.startswith('/api/v1/'):
+                return jsonify({
+                    'success': False,
+                    'error': 405,
+                    'message': 'method not allowed'
+                }), 405
+            else:
+                return error
+
+
+
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
+    #CORS(app)
 
-    """
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    """
 
-    """
-    @TODO:
-    Create an endpoint to handle GET requests
-    for all available categories.
-    """
+
 
 
     """
@@ -90,12 +117,6 @@ def create_app(test_config=None):
     TEST: In the "Play" tab, after a user selects "All" or a category,
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
-    """
-
-    """
-    @TODO:
-    Create error handlers for all expected errors
-    including 404 and 422.
     """
 
     return app
