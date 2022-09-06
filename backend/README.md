@@ -9,8 +9,7 @@
     - [1.1.3. PIP Dependencies](#113-pip-dependencies)
     - [1.1.4. Project Key Dependencies](#114-project-key-dependencies)
 - [2. setting up](#2-setting-up)
-  - [2.1. setting up the environment variables](#21-setting-up-the-environment-variables)
-  - [2.2. Database Setup](#22-database-setup)
+  - [2.1. Database Setup](#22-database-setup)
 - [3. Running the server](#3-running-the-server)
 - [4. API Reference](#4-api-reference)
   - [4.1. General](#41-general)
@@ -70,39 +69,14 @@ This will install all the required packages we selected within the `requirements
 
 Follow these setup instructions to get the project up and running
 
-### 2.1. setting up the environment variables
-Before running the project, you should set some environment variables, preferably in your ```.env``` file.
-Below are the environment variables for the project. You can put them in a `.env` file in the root of your virtual environment, or set the variables in the terminal as follows:
-```
-bash
-export FLASK_CONFIG=development
-```
 
-- `FLASK_CONFIG`: Specifies a configuration class for the app. possible choices are development, testing, or production. If not set, the app will run in the development environment by default.  
-E.G: `FLASK_CONFIG = 'development'`
-    - `development`: Start the app in the development environment. `FLASK_ENV` will be set to `development`. which detects file changes and restarts the server automatically.
-    - `testing`: Same as development, but with `testing` set to `True`. This helps in automated testing.
-    - `production`: Start the app in the production environment, with `FLASK_ENV` set to `production`, and `debug` and `testing` set to `False`.
-- `SECRET_KEY`: Set your secret_key which is your data's encryption key. This key should be random. Ideally, you shouldn't even know what it is.  
-E.g.: `SECRET_KEY = 'asogfkbir159hjrigjsq109487glrk54b2j5a'  
-If not set, `SECRET_KEY` will fall back to the string `HackMePleaseLol`.
-- `PROD_DATABASE_URI`, `DEV_DATABASE_URI`, and `TEST_DATABASE_URI`: Set the database uri for SQLAlchemy for the different configuration classes  
-```
-# Production DB URI
-PROD_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/trivia'
-# development DB URI 
-DEV_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/trivia_dev'
-# testing DB URI
-TEST_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/trivia_test'
-```
-
-### 2.2. Database Setup
+### 2.1. Database Setup
 With Postgres running and our trivia database created, restore a database using the trivia.psql file provided. From the backend folder in terminal run:
 ```
 bash
 psql trivia_dev < trivia.psql
 ```
-notice that I've used the `trivia_dev` database, as I want to run the app in the development environment. For more information, checkout the [PostgreSQL Docs](https://www.postgresql.org/docs/9.1/backup-dump.html)
+notice that I've used the `trivia_test` database, as I want to run the app in the test environment. For more information, checkout the [PostgreSQL Docs](https://www.postgresql.org/docs/9.1/backup-dump.html)
 
 ## 3. Running the server
 
@@ -110,9 +84,17 @@ From within the `backend` directory first ensure you are working using your crea
 
 To run the server, execute:
 
+
 ```
-bash
-python wsgi.py
+set FLASK_APP=flaskr
+```
+
+```
+set FLASK_DEBUG=True
+```
+
+```
+python -m flask run
 ```
 
 ## 4. API Reference
@@ -259,7 +241,7 @@ The following errors will be reported:
 }
 ```
 
-#### 4.3.3. GET `/categories/<int:id>/questions`
+#### 4.3.3. GET `/categories/<category_id>/questions`
 - Fetches a dictionary of paginated questions that are in the category specified in the URL parameters.
 - Request Arguments:
     - optional URL queries:
@@ -312,7 +294,7 @@ The following errors will be reported:
 }
 ```
 
-#### 4.3.4. DELETE `/questions/<int:id>`
+#### 4.3.4. DELETE `/questions/<question_id>`
 - Deletes the question by the id specified in the URL parameters.
 - Request Arguments: None
 - Returns: A dictionary that contain deleted: question_id key:value pair.
