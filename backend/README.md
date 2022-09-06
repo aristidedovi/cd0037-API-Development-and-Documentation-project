@@ -9,7 +9,7 @@
     - [1.1.3. PIP Dependencies](#113-pip-dependencies)
     - [1.1.4. Project Key Dependencies](#114-project-key-dependencies)
 - [2. setting up](#2-setting-up)
-  - [2.1. Database Setup](#22-database-setup)
+  - [2.1. Database Setup](#21-database-setup)
 - [3. Running the server](#3-running-the-server)
 - [4. API Reference](#4-api-reference)
   - [4.1. General](#41-general)
