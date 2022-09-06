@@ -43,13 +43,15 @@ for all available categories.
 def get_categories():
     '''get all categories'''
     categories = Category.query.order_by(Category.id).all()
-
+    
+    # create category dictionnaire 
     categories_dictionairy = {category.id: category.type for category in categories}
 
-    #print(categories)
+    # return 404 error when categories length is 0
     if len(categories) == 0:
         abort(404)
         
+    # return categorie data
     return jsonify({
         'success': True,
         'categories': categories_dictionairy,
@@ -78,11 +80,15 @@ def get_questions():
 
     ''' Get all catégories'''
     categories = Category.query.all()
+    
+    # create categories disctionnary for all actegorie
     categories_dictionairy = {category.id: category.type for category in categories}
 
+    # return 404 error when current_questions is not available
     if len(current_questions) == 0:
         abort(404)
     
+    # return questions data
     return jsonify({
         'success': True,
         'questions': current_questions,
@@ -103,19 +109,23 @@ def delete_question(question_id):
     Delete question from database by here id
     '''
     try:
+        # get one one none question by id given in request
         question = Question.query.filter(Question.id == question_id).one_or_none()
 
         # return 404 if question is not available
         if question is None:
             abort(404)
         
+        # delete question 
         question.delete()
 
+        # retun data when question deleted
         return jsonify({
             'success': True,
             'delete': question_id
         })
     except:
+        # rollback and unprocessable when database has error
         db.session.rollback()
         abort(422)
 
@@ -132,29 +142,42 @@ of the questions list in the "List" tab.
 """
 @api1.route('/questions', methods=['POST'])
 def post_new_question(): 
+    # get request data
     body = request.get_json()
-
+    
+    # return 404 if body is not available
     if not body:
         abort(400)
     
+    # verify if body has question, answer, difficulty anbd category attribut
     if (body.get('question') and body.get('answer') and body.get('difficulty') and body.get('category')):
+        
+        # create data for a post question
         new_question = body.get('question')
         new_answer = body.get('answer')
         new_category = body.get('category')
         new_difficulty = body.get('difficulty')
 
+        # return 400 if difficulty greater than 6
         if not 1 <= int(new_difficulty) < 6 :
             abort(400)
         
         try:
+            # create new question on database
             question = Question(new_question, new_answer, new_category, new_difficulty)
             question.insert()
 
+            # get all questions order by id 
             questions = Question.query.order_by(Question.id).all()
+            
+            # return 404 if questions is not available
             if len(questions) == 0:
                 abort(404)
+            
+            # paginate questions
             current_questions = paginate_questions(request, questions)
            
+            # return question data for front
             return jsonify({
                 'success': True,
                 'id': question.id,
@@ -163,6 +186,7 @@ def post_new_question():
                 'total_questions': len(questions)
             })
         except:
+            # rollback and unprocessable when database has error
             db.session.rollback()
             abort(422)
     else:
@@ -182,28 +206,35 @@ Try using the word "title" to start.
 def search_questions():
     ''' search for question in database '''
     body = request.get_json()
-
+    
+    # return 400 if body is not available
     if not body:
         abort(404)
     
+    # get search term fron request body
     if body.get('searchTerm'):
         search_term = body.get('searchTerm')
 
         page = request.args.get('page', 1, type=int)
         
+        # get questions filter by search term in database
         selection = Question.query.filter(Question.question.ilike(f'%{search_term}%'))
 
+        # paginate questions filter
         current_questions = paginate_questions(request, selection)
 
+        # return 404 when current_question is not available
         if len(current_questions) == 0:
             abort(404)
         
+        # return questions data for front
         return jsonify({
             'success': True,
             'questions': current_questions,
             'total_questions': len(current_questions)
         })
     else:
+        # return 400 when request are bad
         abort(400)
 
 """
@@ -217,24 +248,27 @@ category to be shown.
 @api1.route('/categories/<category_id>/questions')
 def get_questions_by_category(category_id):
     '''
-    get all questions by specific category
+    get category by given from request 
     '''
     category = Category.query.filter(Category.id == category_id).one_or_none()
-
+    
+    # return 404 when current_question is not available
     if category is None:
         abort(404)
     
     page = request.args.get('page', 1, type=int)
 
+    # get all questions by specific category
     selection = Question.query.filter(Question.category == category.id).order_by(Question.id)
-
+    
+    # paginate question 
     current_questions = paginate_questions(request, selection)
 
+    # return 404 when current_question is not available
     if len(current_questions) == 0:
         abort(404)
     
-    
-
+    # return question data
     return jsonify({
         'success': True,
         'questions': current_questions,
@@ -256,21 +290,28 @@ and shown whether they were correct or not.
 @api1.route('/quizzes', methods=['POST'])
 def play_quiz():
     '''play quiz game'''
+    
     # load the request body
     body = request.get_json()
     if not body:
         # posting an envalid json should return a 400 error.
         abort(400)
+        
     if (body.get('previous_questions') is None or body.get('quiz_category') is None):
         # if previous_questions or quiz_category are missing, return a 400 error
         abort(400)
+        
     previous_questions = body.get('previous_questions')
+    
     if type(previous_questions) != list:
         # previous_questions should be a list, otherwise return a 400 error
         abort(400)
+        
     category = body.get('quiz_category')
+    
     # just incase, convert category id to integer
     category_id = int(category['id'])
+    
     # insure that there are questions to be played.
     if category_id == 0:
         # if category id is 0, query the database for a random object of all questions
@@ -279,6 +320,7 @@ def play_quiz():
         # load a random object of questions from the specified category
         selection = Question.query.filter(
             Question.category == category_id).order_by(func.random())
+       
     if not selection.all():
         # No questions available, abort with a 404 error
         abort(404)
@@ -286,6 +328,7 @@ def play_quiz():
         # load a random question from our previous query, which is not in the previous_questions list.
         question = selection.filter(Question.id.notin_(
             previous_questions)).first()
+        
     if question is None:
         # all questions were played, returning a success message without a question signifies the end of the game
         return jsonify({
